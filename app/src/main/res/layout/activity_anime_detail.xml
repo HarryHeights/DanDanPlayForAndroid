@@ -6,7 +6,7 @@
 
     <include layout="@layout/layout_toolbar"/>
 
-    <com.xyoye.dandanplay.ui.weight.ScrollableLayout
+    <com.xyoye.dandanplay2.ui.weight.ScrollableLayout
         android:id="@+id/scroll_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -124,7 +124,7 @@
                 </TableLayout>
             </RelativeLayout>
 
-            <com.xyoye.dandanplay.ui.weight.ExpandableTextView
+            <com.xyoye.dandanplay2.ui.weight.ExpandableTextView
                 android:id="@+id/anima_intro_tv"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -285,6 +285,6 @@
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp" />
         </LinearLayout>
-    </com.xyoye.dandanplay.ui.weight.ScrollableLayout>
+    </com.xyoye.dandanplay2.ui.weight.ScrollableLayout>
 
 </RelativeLayout>

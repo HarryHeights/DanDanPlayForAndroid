@@ -29,7 +29,7 @@
                     android:background="@color/white"
                     android:visibility="gone">
 
-                    <com.xyoye.dandanplay.ui.weight.CircleImageView
+                    <com.xyoye.dandanplay2.ui.weight.CircleImageView
                         android:id="@+id/user_image_iv"
                         android:layout_width="70dp"
                         android:layout_height="70dp"

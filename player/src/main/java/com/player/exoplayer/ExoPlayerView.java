@@ -1173,7 +1173,7 @@ public class ExoPlayerView extends FrameLayout implements PlayerViewListener {
      */
     public ExoPlayerView setVideoPath(String videoPath) {
         loadDefaultSubtitle(videoPath);
-        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(mAttachActivity, Util.getUserAgent(mAttachActivity, "com.xyoye.dandanplay.player"));
+        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(mAttachActivity, Util.getUserAgent(mAttachActivity, "com.xyoye.dandanplay2.player"));
         MediaSource videoSource = new ExtractorMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(videoPath));
         exoPlayer.prepare(videoSource);
         seekTo(0);

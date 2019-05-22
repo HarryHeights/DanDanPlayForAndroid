@@ -12,7 +12,7 @@
         android:layout_marginStart="17dp"
         android:src="@mipmap/ic_back_gray"/>
 
-    <com.xyoye.dandanplay.ui.weight.preview.ImageViewTouch
+    <com.xyoye.dandanplay2.ui.weight.preview.ImageViewTouch
         android:id="@+id/preview_iv"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

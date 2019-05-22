@@ -4,9 +4,9 @@ ext{
             minSdkVersion : 19,
             targetSdkVersion : 26,
             buildToolsVersion : '27.0.3',
-            applicationId : "com.xyoye.dandanplay",
-            versionCode : 17,
-            versionName : "3.3.3"
+            applicationId : "com.xyoye.dandanplay2",
+            versionCode : 18,
+            versionName : "3.3.3-thunder"
     ]
 
     dependencies = [

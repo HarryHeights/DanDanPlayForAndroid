@@ -10,7 +10,7 @@
         layout="@layout/layout_toolbar"
         android:id="@+id/toolbar_layout"/>
 
-    <com.xyoye.dandanplay.ui.weight.indicator.MagicIndicator
+    <com.xyoye.dandanplay2.ui.weight.indicator.MagicIndicator
         android:id="@+id/indicator"
         android:layout_width="match_parent"
         android:layout_height="40dp"

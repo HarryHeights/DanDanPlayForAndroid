@@ -8,7 +8,7 @@
 
     <include layout="@layout/layout_toolbar_gradient"/>
 
-    <com.xyoye.dandanplay.ui.weight.ScrollableLayout
+    <com.xyoye.dandanplay2.ui.weight.ScrollableLayout
         android:id="@+id/scroll_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -18,7 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <com.xyoye.dandanplay.ui.weight.SemicircleView
+            <com.xyoye.dandanplay2.ui.weight.SemicircleView
                 android:id="@+id/cover_bg_iv"
                 android:layout_width="match_parent"
                 android:layout_height="170dp"
@@ -28,7 +28,7 @@
                 app:mask_out_color="#ffffff"
                 app:mask_in_color="#33000000"/>
 
-            <com.xyoye.dandanplay.ui.weight.shadow.ShadowRelativeLayout
+            <com.xyoye.dandanplay2.ui.weight.shadow.ShadowRelativeLayout
                 android:id="@+id/detail_info_rl"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -135,7 +135,7 @@
 
                 </TableLayout>
 
-                <com.xyoye.dandanplay.ui.weight.ExpandableTextView
+                <com.xyoye.dandanplay2.ui.weight.ExpandableTextView
                     android:id="@+id/anima_intro_tv"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -145,9 +145,9 @@
                     android:layout_marginStart="10dp"
                     android:layout_marginBottom="10dp"
                     android:text="" />
-            </com.xyoye.dandanplay.ui.weight.shadow.ShadowRelativeLayout>
+            </com.xyoye.dandanplay2.ui.weight.shadow.ShadowRelativeLayout>
 
-            <com.xyoye.dandanplay.ui.weight.shadow.ShadowRelativeLayout
+            <com.xyoye.dandanplay2.ui.weight.shadow.ShadowRelativeLayout
                 android:layout_width="90dp"
                 android:layout_height="110dp"
                 android:layout_marginStart="30dp"
@@ -162,7 +162,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"/>
-            </com.xyoye.dandanplay.ui.weight.shadow.ShadowRelativeLayout>
+            </com.xyoye.dandanplay2.ui.weight.shadow.ShadowRelativeLayout>
         </RelativeLayout>
 
         <LinearLayout
@@ -310,6 +310,6 @@
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp" />
         </LinearLayout>
-    </com.xyoye.dandanplay.ui.weight.ScrollableLayout>
+    </com.xyoye.dandanplay2.ui.weight.ScrollableLayout>
 
 </RelativeLayout>
