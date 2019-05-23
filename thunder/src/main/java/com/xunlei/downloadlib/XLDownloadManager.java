@@ -246,6 +246,7 @@ public class XLDownloadManager {
         if (mDownloadManagerState == XLManagerStatus.MANAGER_RUNNING && this.mLoader != null) {
             i = this.mLoader.startTask(j, z);
         }
+        LogUtils.d("XLStartTask()----- ret=" + i);
         decreRefCount();
         return i;
     }

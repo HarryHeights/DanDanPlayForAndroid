@@ -85,6 +85,7 @@ public class PlayerActivity extends AppCompatActivity implements PlayerReceiverL
     private long currentPosition;
     private int episodeId;
     private List<SubtitleBean> subtitleList;
+    private boolean isOnline = false;
 
     //电源广播
     private BatteryBroadcastReceiver batteryReceiver;
@@ -145,6 +146,7 @@ public class PlayerActivity extends AppCompatActivity implements PlayerReceiverL
         danmuPath = getIntent().getStringExtra("danmu_path");
         currentPosition = getIntent().getLongExtra("current_position", 0);
         episodeId = getIntent().getIntExtra("episode_id", 0);
+        isOnline = getIntent().getBooleanExtra("is_online", false);
 
         //初始化接口
         initListener();
@@ -312,11 +314,11 @@ public class PlayerActivity extends AppCompatActivity implements PlayerReceiverL
                 //跳转至上一次播放进度
                 .setSkipTip(currentPosition)
                 //是否开启网络字幕
-                .setNetworkSubtitle(AppConfig.getInstance().isUseNetWorkSubtitle())
+                .setNetworkSubtitle(!isOnline && AppConfig.getInstance().isUseNetWorkSubtitle())
                 //是否自动加载同名字幕
-                .setAutoLoadLocalSubtitle(AppConfig.getInstance().isAutoLoadLocalSubtitle())
+                .setAutoLoadLocalSubtitle(!isOnline && AppConfig.getInstance().isAutoLoadLocalSubtitle())
                 //是否自动加载网络字幕
-                .setAutoLoadNetworkSubtitle(AppConfig.getInstance().isAutoLoadNetworkSubtitle())
+                .setAutoLoadNetworkSubtitle(!isOnline && AppConfig.getInstance().isAutoLoadNetworkSubtitle())
                 //设置标题
                 .setTitle(videoTitle)
                 //设置视频路径
@@ -344,11 +346,11 @@ public class PlayerActivity extends AppCompatActivity implements PlayerReceiverL
                 //跳转至上一次播放进度
                 .setSkipTip(currentPosition)
                 //是否开启网络字幕
-                .setNetworkSubtitle(AppConfig.getInstance().isUseNetWorkSubtitle())
+                .setNetworkSubtitle(!isOnline && AppConfig.getInstance().isUseNetWorkSubtitle())
                 //是否自动加载同名字幕
-                .setAutoLoadLocalSubtitle(AppConfig.getInstance().isAutoLoadLocalSubtitle())
+                .setAutoLoadLocalSubtitle(!isOnline && AppConfig.getInstance().isAutoLoadLocalSubtitle())
                 //是否自动加载网络字幕
-                .setAutoLoadNetworkSubtitle(AppConfig.getInstance().isAutoLoadNetworkSubtitle())
+                .setAutoLoadNetworkSubtitle(!isOnline && AppConfig.getInstance().isAutoLoadNetworkSubtitle())
                 //设置标题
                 .setTitle(videoTitle)
                 //设置视频路径

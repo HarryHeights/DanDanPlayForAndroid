@@ -78,41 +78,41 @@ public class DownloadMangerActivity extends BaseMvpActivity<DownloadManagerPrese
     }
 
     private void initTask(){
-        Intent intent = getIntent();
-        String torrentPath = intent.getStringExtra("torrent_path");
-        String animeTitle = intent.getStringExtra("anime_title");
-        List<Integer> indexList = intent.getIntegerArrayListExtra("torrent_indexes");
-        int[] indexes = new int[indexList.size()];
-
-        for (int i=0; i<indexList.size(); i++){
-            indexes[i] = indexList.get(i);
-        }
-
-        String animeFolder = StringUtils.isEmpty(animeTitle) ? "/" : "/"+animeTitle+"/";
-
-        TorrentInfo torrentInfo = XLTaskHelper.getInstance().getTorrentInfo(torrentPath);
-        String saveFolderPath = AppConfig.getInstance().getDownloadFolder();
-        if (torrentInfo.mIsMultiFiles){
-            saveFolderPath = saveFolderPath + animeFolder + torrentInfo.mMultiFileBaseFolder;
-        }else {
-            String folderName = FileUtils.getFileNameNoExtension(torrentInfo.mSubFileInfo[0].mFileName);
-            saveFolderPath = saveFolderPath + animeFolder + folderName;
-        }
-
-
-        long taskId = XLTaskHelper.getInstance().addNewTorrentTask(torrentPath, saveFolderPath, indexes);
-
-        if (taskId == -1){
-            ToastUtils.showShort("创建任务失败");
-            return;
-        }
-
-        XLTaskInfo taskInfo = XLTaskHelper.getInstance().getTaskInfo(taskId);
-        taskInfo.mSourceUrl = torrentPath;
-        taskInfo.mSaveFolder = saveFolderPath;
-        taskInfo.mIndexes = indexes;
-        IApplication.taskIdList.add(taskId);
-        IApplication.taskInfoList.put(taskId, taskInfo);
+//        Intent intent = getIntent();
+//        String torrentPath = intent.getStringExtra("torrent_path");
+//        String animeTitle = intent.getStringExtra("anime_title");
+//        List<Integer> indexList = intent.getIntegerArrayListExtra("torrent_indexes");
+//        int[] indexes = new int[indexList.size()];
+//
+//        for (int i=0; i<indexList.size(); i++){
+//            indexes[i] = indexList.get(i);
+//        }
+//
+//        String animeFolder = StringUtils.isEmpty(animeTitle) ? "/" : "/"+animeTitle+"/";
+//
+//        TorrentInfo torrentInfo = XLTaskHelper.getInstance().getTorrentInfo(torrentPath);
+//        String saveFolderPath = AppConfig.getInstance().getDownloadFolder();
+//        if (torrentInfo.mIsMultiFiles){
+//            saveFolderPath = saveFolderPath + animeFolder + torrentInfo.mMultiFileBaseFolder;
+//        }else {
+//            String folderName = FileUtils.getFileNameNoExtension(torrentInfo.mSubFileInfo[0].mFileName);
+//            saveFolderPath = saveFolderPath + animeFolder + folderName;
+//        }
+//
+//
+//        long taskId = XLTaskHelper.getInstance().addNewTorrentTask(torrentPath, saveFolderPath, indexes);
+//
+//        if (taskId == -1){
+//            ToastUtils.showShort("创建任务失败");
+//            return;
+//        }
+//
+//        XLTaskInfo taskInfo = XLTaskHelper.getInstance().getTaskInfo(taskId);
+//        taskInfo.mSourceUrl = torrentPath;
+//        taskInfo.mSaveFolder = saveFolderPath;
+//        taskInfo.mIndexes = indexes;
+//        IApplication.taskIdList.add(taskId);
+//        IApplication.taskInfoList.put(taskId, taskInfo);
     }
 
     private void initRefresh(){

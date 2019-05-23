@@ -2,7 +2,6 @@ package com.xyoye.dandanplay2.ui.activities;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -13,13 +12,18 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.KeyboardUtils;
 import com.blankj.utilcode.util.StringUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.player.commom.utils.AnimHelper;
 import com.tbruyelle.rxpermissions2.RxPermissions;
+import com.xunlei.downloadlib.XLDownloadManager;
 import com.xunlei.downloadlib.XLTaskHelper;
+import com.xunlei.downloadlib.parameter.BtIndexSet;
+import com.xunlei.downloadlib.parameter.BtTaskParam;
 import com.xunlei.downloadlib.parameter.TorrentInfo;
+import com.xunlei.downloadlib.parameter.XLTaskLocalUrl;
 import com.xyoye.dandanplay2.R;
 import com.xyoye.dandanplay2.base.BaseMvpActivity;
 import com.xyoye.dandanplay2.base.BaseRvAdapter;
@@ -39,14 +43,17 @@ import com.xyoye.dandanplay2.ui.weight.dialog.TorrentFileCheckDialog;
 import com.xyoye.dandanplay2.ui.weight.item.MagnetItem;
 import com.xyoye.dandanplay2.ui.weight.item.SearchHistoryItem;
 import com.xyoye.dandanplay2.utils.AppConfig;
+import com.xyoye.dandanplay2.utils.Constants;
 import com.xyoye.dandanplay2.utils.interf.AdapterItem;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -75,6 +82,9 @@ public class SearchActivity extends BaseMvpActivity<SearchPresenter> implements 
     private String searchWord;
     private int typeId = -1;
     private int subgroupsId = -1;
+    private AtomicInteger seq = new AtomicInteger(0);
+    private long playTaskId = -1;
+    private String playFolder = "";
 
     private List<SearchHistoryBean> historyList;
     private List<MagnetBean.ResourcesBean> resultList;
@@ -127,7 +137,7 @@ public class SearchActivity extends BaseMvpActivity<SearchPresenter> implements 
         resultRv.setAdapter(resultAdapter);
 
         presenter.getSearchHistory(isAnime);
-        if (!isAnime){
+        if (!isAnime) {
             searchEt.postDelayed(() ->
                     KeyboardUtils.showSoftInput(searchEt), 200);
         }
@@ -136,7 +146,7 @@ public class SearchActivity extends BaseMvpActivity<SearchPresenter> implements 
     @Override
     public void initListener() {
         searchEt.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus){
+            if (hasFocus) {
                 AnimHelper.doShowAnimator(historyRl);
             }
         });
@@ -148,7 +158,7 @@ public class SearchActivity extends BaseMvpActivity<SearchPresenter> implements 
         });
 
         searchEt.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_DONE){
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
                 String searchText = searchEt.getText().toString().trim();
                 if (StringUtils.isEmpty(searchText)) {
                     ToastUtils.showShort("请输入搜索条件");
@@ -168,7 +178,7 @@ public class SearchActivity extends BaseMvpActivity<SearchPresenter> implements 
             case R.id.return_iv:
                 if (historyRl.getVisibility() == View.GONE || !isSearch)
                     SearchActivity.this.finish();
-                else{
+                else {
                     AnimHelper.doHideAnimator(historyRl);
                     searchEt.clearFocus();
                 }
@@ -222,11 +232,11 @@ public class SearchActivity extends BaseMvpActivity<SearchPresenter> implements 
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(DeleteHistoryEvent event) {
-        if (event.isDeleteAll()){
+        if (event.isDeleteAll()) {
             presenter.deleteAllHistory();
             historyList.clear();
             historyAdapter.notifyDataSetChanged();
-        }else {
+        } else {
             if (historyList != null &&
                     historyList.size() > 0 &&
                     historyList.size() > event.getDeletePosition()) {
@@ -240,7 +250,7 @@ public class SearchActivity extends BaseMvpActivity<SearchPresenter> implements 
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(SearchHistoryEvent event){
+    public void onEvent(SearchHistoryEvent event) {
         if (StringUtils.isEmpty(event.getSearchText())) {
             ToastUtils.showShort("搜索条件不能为空");
             return;
@@ -263,6 +273,9 @@ public class SearchActivity extends BaseMvpActivity<SearchPresenter> implements 
     @Override
     protected void onResume() {
         super.onResume();
+        if (playTaskId != -1 && !StringUtils.isEmpty(playFolder)) {
+            XLTaskHelper.getInstance().deleteTask(playTaskId, playFolder);
+        }
         EventBus.getDefault().register(this);
     }
 
@@ -297,7 +310,7 @@ public class SearchActivity extends BaseMvpActivity<SearchPresenter> implements 
     public void downloadTorrentOver(String torrentPath, String magnet) {
 
         TorrentInfo torrentInfo = XLTaskHelper.getInstance().getTorrentInfo(torrentPath);
-        if (torrentInfo == null || torrentInfo.mSubFileInfo == null){
+        if (torrentInfo == null || torrentInfo.mSubFileInfo == null) {
             ToastUtils.showShort("解析种子文件失败，请重试");
             return;
         }
@@ -306,13 +319,7 @@ public class SearchActivity extends BaseMvpActivity<SearchPresenter> implements 
         TorrentFileCheckDialog torrentFileCheckDialog = new TorrentFileCheckDialog(
                 SearchActivity.this,
                 torrentInfo,
-                indexes -> {
-                    Intent intent = new Intent(this, DownloadMangerActivity.class);
-                    intent.putExtra("anime_title", animeTitle);
-                    intent.putExtra("torrent_path", torrentPath);
-                    intent.putIntegerArrayListExtra("torrent_indexes", indexes);
-                    startActivity(intent);
-                }
+                index -> play(torrentPath, index)
         );
         if (!this.isFinishing())
             torrentFileCheckDialog.show();
@@ -345,22 +352,22 @@ public class SearchActivity extends BaseMvpActivity<SearchPresenter> implements 
 
         boolean isExist = false;
         int existN = -1;
-        for (int i=0; i<historyList.size(); i++){
+        for (int i = 0; i < historyList.size(); i++) {
             SearchHistoryBean historyBean = historyList.get(i);
-            if(historyBean.getText().equals(searchText)){
+            if (historyBean.getText().equals(searchText)) {
                 isExist = true;
                 existN = i;
                 break;
             }
         }
-        if (!isExist){
+        if (!isExist) {
             historyList.add(0, new SearchHistoryBean(historyList.size(), searchText, System.currentTimeMillis()));
-            if (historyList.size() == 1){
+            if (historyList.size() == 1) {
                 historyList.add(new SearchHistoryBean(-1, "", -1));
             }
             historyAdapter.notifyDataSetChanged();
             presenter.addHistory(searchText);
-        }else {
+        } else {
             SearchHistoryBean historyBean = historyList.get(existN);
             historyList.remove(existN);
             historyList.add(0, historyBean);
@@ -368,6 +375,50 @@ public class SearchActivity extends BaseMvpActivity<SearchPresenter> implements 
             presenter.updateHistory(historyBean.get_id());
         }
         presenter.search(searchText, typeId, subgroupsId);
+    }
+
+    private void play(String torrentPath, int selectIndex) {
+        TorrentInfo torrentInfo = XLTaskHelper.getInstance().getTorrentInfo(torrentPath);
+        playFolder = Constants.DefaultConfig.playCacheFolder + "/" + FileUtils.getFileNameNoExtension(torrentInfo.mSubFileInfo[selectIndex].mFileName);
+        File folderFile = new File(playFolder);
+        if (folderFile.exists() && folderFile.isDirectory()) {
+            FileUtils.deleteFilesInDir(folderFile);
+        } else {
+            folderFile.mkdirs();
+        }
+
+        BtTaskParam taskParam = new BtTaskParam();
+        taskParam.setCreateMode(1);
+        taskParam.setFilePath(playFolder);
+        taskParam.setMaxConcurrent(3);
+        taskParam.setSeqId(seq.incrementAndGet());
+        taskParam.setTorrentPath(torrentPath);
+
+        BtIndexSet selectIndexSet = new BtIndexSet(1);
+        selectIndexSet.mIndexSet[0] = selectIndex;
+
+        BtIndexSet deSelectIndexSet = new BtIndexSet(torrentInfo.mSubFileInfo.length - 1);
+        int j = 0;
+        for (int i = 0; i < torrentInfo.mSubFileInfo.length; i++) {
+            if (i != selectIndex) {
+                deSelectIndexSet.mIndexSet[j] = i;
+                j++;
+            }
+        }
+
+        playTaskId = XLTaskHelper.getInstance().startTask(taskParam, selectIndexSet, deSelectIndexSet);
+
+        String fileName = torrentInfo.mSubFileInfo[selectIndex].mFileName;
+        String filePath = taskParam.mFilePath + "/" + fileName;
+        XLTaskLocalUrl localUrl = new XLTaskLocalUrl();
+        XLDownloadManager.getInstance().getLocalUrl(filePath, localUrl);
+
+        if (playTaskId != -1) {
+            PlayerManagerActivity.launchPlayerOnline(this, fileName, localUrl.mStrUrl, searchWord, 0, 0);
+        } else {
+            ToastUtils.showShort("获取播放链接错误");
+            XLTaskHelper.getInstance().deleteTask(playTaskId, taskParam.mFilePath);
+        }
     }
 
     @Override
@@ -390,7 +441,7 @@ public class SearchActivity extends BaseMvpActivity<SearchPresenter> implements 
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {
             if (historyRl.getVisibility() == View.GONE || !isSearch)
                 SearchActivity.this.finish();
-            else{
+            else {
                 AnimHelper.doHideAnimator(historyRl);
                 KeyboardUtils.hideSoftInput(searchEt);
                 searchEt.clearFocus();

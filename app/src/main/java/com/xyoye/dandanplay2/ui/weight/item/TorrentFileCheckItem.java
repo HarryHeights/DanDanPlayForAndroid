@@ -1,7 +1,9 @@
 package com.xyoye.dandanplay2.ui.weight.item;
 
+import android.annotation.SuppressLint;
 import android.view.View;
-import android.widget.CheckBox;
+import android.widget.RadioButton;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.xunlei.downloadlib.parameter.TorrentFileInfo;
@@ -17,8 +19,10 @@ import butterknife.BindView;
 
 public class TorrentFileCheckItem implements AdapterItem<TorrentFileInfo> {
 
-    @BindView(R.id.check_cb)
-    CheckBox checkCb;
+    @BindView(R.id.item_view)
+    RelativeLayout itemView;
+    @BindView(R.id.check_rb)
+    RadioButton checkRb;
     @BindView(R.id.file_name_tv)
     TextView fileNameTv;
     @BindView(R.id.file_size_tv)
@@ -45,19 +49,18 @@ public class TorrentFileCheckItem implements AdapterItem<TorrentFileInfo> {
 
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public void onUpdateViews(TorrentFileInfo model, int position) {
-        checkCb.setChecked(model.checked);
+        checkRb.setChecked(model.checked);
         fileNameTv.setText(model.mFileName);
         fileSizeTv.setText(CommonUtils.convertFileSize(model.mFileSize));
 
-        checkCb.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (listener != null)
-                listener.onCheck(position, isChecked);
-        });
+        checkRb.setOnClickListener(v -> listener.onCheck(position));
+        itemView.setOnClickListener(v -> listener.onCheck(position));
     }
 
     public interface TorrentFileCheckListener{
-        void onCheck(int position, boolean isChecked);
+        void onCheck(int position);
     }
 }

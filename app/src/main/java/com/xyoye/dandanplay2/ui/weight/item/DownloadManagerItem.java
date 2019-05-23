@@ -88,25 +88,13 @@ public class DownloadManagerItem implements AdapterItem<Long> {
         downloadInfoRl.setOnClickListener(v ->  {
             if (!torrentInfo.mIsMultiFiles){
                 String filePath = staticTask.mSaveFolder + "/" + title;
-                String playUrl = XLTaskHelper.getInstance().getLoclUrl(filePath);
+                String playUrl = XLTaskHelper.getInstance().getLocalUrl(filePath);
                 PlayerManagerActivity.launchPlayer(context, "边下边播测试", playUrl, "", 0, 0);
             }
         });
 
         downloadCtrlRl.setOnClickListener(v -> {
-            if (liveTask.mTaskStatus == XLConstant.XLTaskStatus.TASK_SUCCESS ||
-                    liveTask.mTaskStatus == XLConstant.XLTaskStatus.TASK_FAILED)
-                return;
-            if (liveTask.mTaskStatus != XLConstant.XLTaskStatus.TASK_RUNNING){
-                long newTaskId = XLTaskHelper.getInstance().resumeTask(staticTask);
-                //替换旧ID
-                IApplication.taskIdList.set(position, newTaskId);
-                IApplication.taskInfoList.remove(taskId);
-                IApplication.taskInfoList.put(newTaskId, staticTask);
-                ToastUtils.showShort("旧id:"+taskId+"  新id:"+newTaskId);
-            }else {
-                XLTaskHelper.getInstance().pauseTask(liveTask.mTaskId);
-            }
+
         });
     }
 

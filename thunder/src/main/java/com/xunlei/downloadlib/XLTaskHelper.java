@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 
 public class XLTaskHelper {
-    private AtomicInteger seq = new AtomicInteger(0);
 
     public static void init(Context context) {
         XLDownloadManager instance = XLDownloadManager.getInstance();
@@ -75,38 +74,15 @@ public class XLTaskHelper {
         return torrentInfo;
     }
 
-    public synchronized long addNewTorrentTask(String torrentPath, String savePath, int[]indexes){
-        return addTorrentTask(torrentPath, savePath, indexes, 1);
-    }
-
     /**
      * 添加种子下载任务,如果是磁力链需要先通过addMagentTask将种子下载下来
-     * @param torrentPath 种子地址
-     * @param savePath 保存路径
-     * @param indexes 需要下载的文件索引
      * @return
      */
-    private synchronized long addTorrentTask(String torrentPath, String savePath, int[]indexes, int createMode ){
-        TorrentInfo torrentInfo = new TorrentInfo();
-        XLDownloadManager.getInstance().getTorrentInfo(torrentPath,torrentInfo);
-        TorrentFileInfo[] fileInfos = torrentInfo.mSubFileInfo;
-        BtTaskParam taskParam = new BtTaskParam();
-        taskParam.setCreateMode(createMode);
-        taskParam.setFilePath(savePath);
-        taskParam.setMaxConcurrent(3);
-        taskParam.setSeqId(seq.incrementAndGet());
-        taskParam.setTorrentPath(torrentPath);
+    public synchronized long startTask(BtTaskParam taskParam, BtIndexSet selectIndexSet, BtIndexSet deSelectIndexSet){
         GetTaskId getTaskId = new GetTaskId();
-        int errorCode = XLDownloadManager.getInstance().createBtTask(taskParam,getTaskId);
-        LogUtils.e("创建任务code："+errorCode+" msg："+getErrorMsg(errorCode));
-        if(fileInfos.length > 1 && indexes != null && indexes.length > 0) {
-            BtIndexSet btIndexSet = new BtIndexSet(indexes.length);
-            int i = 0;
-            for(int index : indexes) {
-                btIndexSet.mIndexSet[i++] = index;
-            }
-            XLDownloadManager.getInstance().selectBtSubTask(getTaskId.getTaskId(),btIndexSet);
-        }
+        XLDownloadManager.getInstance().createBtTask(taskParam, getTaskId);
+        XLDownloadManager.getInstance().selectBtSubTask(getTaskId.getTaskId(),selectIndexSet);
+        XLDownloadManager.getInstance().deselectBtSubTask(getTaskId.getTaskId(), deSelectIndexSet);
         XLDownloadManager.getInstance().setTaskLxState(getTaskId.getTaskId(), 0, 1);
         XLDownloadManager.getInstance().startTask(getTaskId.getTaskId(), false);
         return getTaskId.getTaskId();
@@ -117,28 +93,10 @@ public class XLTaskHelper {
      * @param filePath
      * @return
      */
-    public synchronized String getLoclUrl(String filePath) {
+    public synchronized String getLocalUrl(String filePath) {
         XLTaskLocalUrl localUrl = new XLTaskLocalUrl();
         XLDownloadManager.getInstance().getLocalUrl(filePath, localUrl);
         return localUrl.mStrUrl;
-    }
-
-    /**
-     * 唤醒任务
-     */
-    public synchronized long resumeTask(XLTaskInfo taskInfo) {
-        String torrentPath = taskInfo.mSourceUrl;
-        String savePath = taskInfo.mSaveFolder;
-        int[] indexes = taskInfo.mIndexes;
-        XLDownloadManager.getInstance().releaseTask(taskInfo.mTaskId);
-        return addTorrentTask(torrentPath, savePath, indexes, 1);
-    }
-
-    /**
-     * 暂停任务
-     */
-    public synchronized int pauseTask(long taskId) {
-        return XLDownloadManager.getInstance().stopTask(taskId);
     }
 
     /**

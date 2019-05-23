@@ -47,6 +47,8 @@ public class DanmuNetworkActivity extends BaseMvpActivity<DanmuNetworkPresenter>
     RecyclerView recyclerView;
 
     private String videoPath;
+    private boolean isOnline;
+    private String searchWord;
     private BaseRvAdapter<DanmuMatchBean.MatchesBean> adapter;
 
 
@@ -66,6 +68,8 @@ public class DanmuNetworkActivity extends BaseMvpActivity<DanmuNetworkPresenter>
         recyclerView.addItemDecoration(new ItemDecorationSpaces(0, 0, 0, 1));
         recyclerView.setAdapter(adapter);
         videoPath = getIntent().getStringExtra("video_path");
+        isOnline = getIntent().getBooleanExtra("is_online", false);
+        searchWord = getIntent().getStringExtra("search_word");
     }
 
     @Override
@@ -77,7 +81,7 @@ public class DanmuNetworkActivity extends BaseMvpActivity<DanmuNetworkPresenter>
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.local_danmu:
-                new FileManagerDialog(this, FileManagerDialog.SELECT_DANMU, path ->{
+                new FileManagerDialog(this, FileManagerDialog.SELECT_DANMU, path -> {
                     Intent intent = getIntent();
                     intent.putExtra("path", path);
                     intent.putExtra("position", getIntent().getIntExtra("position", -1));
@@ -113,6 +117,16 @@ public class DanmuNetworkActivity extends BaseMvpActivity<DanmuNetworkPresenter>
     @Override
     public String getVideoPath() {
         return videoPath;
+    }
+
+    @Override
+    public String getSearchWord() {
+        return searchWord;
+    }
+
+    @Override
+    public boolean isOnline() {
+        return isOnline;
     }
 
     @Override

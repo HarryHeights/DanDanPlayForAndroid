@@ -31,8 +31,10 @@ public class PlayerManagerActivity extends AppCompatActivity {
     private String videoPath;
     private String videoTitle;
     private String danmuPath;
+    private String searchWord;
     private long currentPosition;
     private int episodeId;
+    private boolean isOnline;
 
     @BindView(R.id.error_tv)
     TextView errorTv;
@@ -52,46 +54,52 @@ public class PlayerManagerActivity extends AppCompatActivity {
         initIntent();
     }
 
-    private void initIntent(){
+    private void initIntent() {
         Intent openIntent = getIntent();
         videoTitle = openIntent.getStringExtra("video_title");
         videoPath = openIntent.getStringExtra("video_path");
         danmuPath = openIntent.getStringExtra("danmu_path");
+        searchWord = openIntent.getStringExtra("search_word");
         currentPosition = openIntent.getLongExtra("current_position", 0);
         episodeId = openIntent.getIntExtra("episode_id", 0);
+        isOnline = openIntent.getBooleanExtra("is_online", false);
 
         boolean isSmbPlay = openIntent.getBooleanExtra("smb_play", false);
 
         //外部打开 或 smb播放
-        if (Intent.ACTION_VIEW.equals(openIntent.getAction()) || isSmbPlay) {
-            Uri data = getIntent().getData();
-            if (data != null) {
-                videoPath = CommonUtils.getRealFilePath(PlayerManagerActivity.this, data);
-                if (videoPath != null){
-                    videoTitle = FileUtils.getFileName(videoPath);
-                    //是否展示前往选择弹幕弹窗
-                    if (AppConfig.getInstance().isShowOuterChainDanmuDialog()) {
-                        new DanmuSelectDialog(this, isSelectDanmu -> {
-                            if (isSelectDanmu) {
-                                launchDanmuSelect(videoPath);
-                            }
-                        }).show();
-                    } else {
-                        if (AppConfig.getInstance().isOuterChainDanmuSelect()) {
-                            launchDanmuSelect(videoPath);
-                        }else {
-                            launchPlayerActivity();
-                        }
-                    }
-                } else {
+        if (Intent.ACTION_VIEW.equals(openIntent.getAction()) || isSmbPlay || isOnline) {
+            Uri data;
+            if (!isOnline) {
+                data = getIntent().getData();
+                if (data == null) {
                     ToastUtils.showShort("解析视频地址失败");
                     errorTv.setVisibility(View.VISIBLE);
+                    return;
+                }
+                videoPath = CommonUtils.getRealFilePath(PlayerManagerActivity.this, data);
+                videoTitle = FileUtils.getFileName(videoPath);
+            }
+
+            if (videoPath != null) {
+                //是否展示前往选择弹幕弹窗
+                if (AppConfig.getInstance().isShowOuterChainDanmuDialog()) {
+                    new DanmuSelectDialog(this, isSelectDanmu -> {
+                        if (isSelectDanmu) {
+                            launchDanmuSelect(videoPath);
+                        }
+                    }).show();
+                } else {
+                    if (AppConfig.getInstance().isOuterChainDanmuSelect()) {
+                        launchDanmuSelect(videoPath);
+                    } else {
+                        launchPlayerActivity();
+                    }
                 }
             } else {
                 ToastUtils.showShort("解析视频地址失败");
                 errorTv.setVisibility(View.VISIBLE);
             }
-        }else {
+        } else {
             launchPlayerActivity();
         }
     }
@@ -100,16 +108,19 @@ public class PlayerManagerActivity extends AppCompatActivity {
         Intent intent = new Intent(PlayerManagerActivity.this, DanmuNetworkActivity.class);
         intent.putExtra("video_path", videoPath);
         intent.putExtra("is_lan", false);
+        intent.putExtra("is_online", isOnline);
+        intent.putExtra("search_word", searchWord);
         startActivityForResult(intent, SELECT_DANMU);
     }
 
-    private void launchPlayerActivity(){
+    private void launchPlayerActivity() {
         Intent intent = new Intent(this, PlayerActivity.class);
         intent.putExtra("video_title", videoTitle);
         intent.putExtra("video_path", videoPath);
         intent.putExtra("danmu_path", danmuPath);
         intent.putExtra("current_position", currentPosition);
         intent.putExtra("episode_id", episodeId);
+        intent.putExtra("is_online", isOnline);
         this.startActivity(intent);
         PlayerManagerActivity.this.finish();
     }
@@ -129,12 +140,24 @@ public class PlayerManagerActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
-            if (requestCode == SELECT_DANMU){
+            if (requestCode == SELECT_DANMU) {
                 danmuPath = data.getStringExtra("path");
                 episodeId = data.getIntExtra("episode_id", 0);
                 launchPlayerActivity();
             }
         }
+    }
+
+    public static void launchPlayerOnline(Context context, String title, String path, String searchWord, long position, int episodeId) {
+        Intent intent = new Intent(context, PlayerManagerActivity.class);
+        intent.putExtra("video_title", title);
+        intent.putExtra("video_path", path);
+        intent.putExtra("danmu_path", "");
+        intent.putExtra("search_word", searchWord);
+        intent.putExtra("current_position", position);
+        intent.putExtra("episode_id", episodeId);
+        intent.putExtra("is_online", true);
+        context.startActivity(intent);
     }
 
     public static void launchPlayer(Context context, String title, String path, String danmu, long position, int episodeId) {
@@ -147,7 +170,7 @@ public class PlayerManagerActivity extends AppCompatActivity {
         context.startActivity(intent);
     }
 
-    public static void launchPlayerSmb(Context context, String title, String path){
+    public static void launchPlayerSmb(Context context, String title, String path) {
         Intent intent = new Intent(context, PlayerManagerActivity.class);
         intent.putExtra("video_title", title);
         intent.putExtra("video_path", path);

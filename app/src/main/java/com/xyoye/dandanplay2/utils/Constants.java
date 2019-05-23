@@ -76,6 +76,8 @@ public class Constants {
         public static final String imageFolder =  downloadPath + "/_image";
         //备份文件路径
         public static final String backupFolder =  downloadPath + "/_backup";
+        //播放缓存路径
+        public static final String playCacheFolder =  downloadPath + "/.playCache";
     }
 
     public static class SmbType{

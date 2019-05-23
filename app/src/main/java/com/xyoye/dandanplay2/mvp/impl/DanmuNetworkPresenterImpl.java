@@ -38,21 +38,39 @@ public class DanmuNetworkPresenterImpl extends BaseMvpPresenterImpl<DanmuNetwork
 
     @Override
     public void process(Bundle savedInstanceState) {
-        getView().showLoading();
-        String videoPath = getView().getVideoPath();
+        if (!getView().isOnline()) {
+            getView().showLoading();
+            String videoPath = getView().getVideoPath();
 
-        if (StringUtils.isEmpty(videoPath)) return;
-        String title = FileUtils.getFileName(videoPath);
-        String hash = MD5Util.getVideoFileHash(videoPath);
-        long length = new File(videoPath).length();
-        long duration = MD5Util.getVideoDuration(videoPath);
-        DanmuMatchParam param = new DanmuMatchParam();
-        param.setFileName(title);
-        param.setFileHash(hash);
-        param.setFileSize(length);
-        param.setVideoDuration(duration);
-        param.setMatchMode("hashAndFileName");
-        matchDanmu(param);
+            if (StringUtils.isEmpty(videoPath)) return;
+            String title = FileUtils.getFileName(videoPath);
+            String hash = MD5Util.getVideoFileHash(videoPath);
+            long length = new File(videoPath).length();
+            long duration = MD5Util.getVideoDuration(videoPath);
+            DanmuMatchParam param = new DanmuMatchParam();
+            param.setFileName(title);
+            param.setFileHash(hash);
+            param.setFileSize(length);
+            param.setVideoDuration(duration);
+            param.setMatchMode("hashAndFileName");
+            matchDanmu(param);
+        } else {
+            String searchWord = getView().getSearchWord();
+            String title;
+            String episode = "";
+            if (searchWord.trim().contains(" ")) {
+                String[] ts = searchWord.split(" ");
+                if (ts.length == 2) {
+                    title = ts[0];
+                    episode = ts[1];
+                } else {
+                    title = ts[0];
+                }
+            } else {
+                title = searchWord;
+            }
+            searchDanmu(title, episode);
+        }
     }
 
     @Override
@@ -72,7 +90,7 @@ public class DanmuNetworkPresenterImpl extends BaseMvpPresenterImpl<DanmuNetwork
 
     @Override
     public void matchDanmu(DanmuMatchParam param) {
-        DanmuMatchBean.matchDanmu(param,  new CommJsonObserver<DanmuMatchBean>(getLifeful()){
+        DanmuMatchBean.matchDanmu(param, new CommJsonObserver<DanmuMatchBean>(getLifeful()) {
             @Override
             public void onSuccess(DanmuMatchBean danmuMatchBean) {
                 getView().hideLoading();
@@ -93,15 +111,15 @@ public class DanmuNetworkPresenterImpl extends BaseMvpPresenterImpl<DanmuNetwork
     @Override
     public void searchDanmu(String anime, String episode) {
         getView().showLoading();
-        DanmuSearchBean.searchDanmu(anime, episode, new CommJsonObserver<DanmuSearchBean>(getLifeful()){
+        DanmuSearchBean.searchDanmu(anime, episode, new CommJsonObserver<DanmuSearchBean>(getLifeful()) {
             @Override
             public void onSuccess(DanmuSearchBean danmuSearchBean) {
                 getView().hideLoading();
-                if (danmuSearchBean.getAnimes().size() > 0){
+                if (danmuSearchBean.getAnimes().size() > 0) {
                     List<DanmuMatchBean.MatchesBean> matchesBeanList = new ArrayList<>();
-                    for (DanmuSearchBean.AnimesBean animesBean : danmuSearchBean.getAnimes()){
+                    for (DanmuSearchBean.AnimesBean animesBean : danmuSearchBean.getAnimes()) {
                         DanmuMatchBean.MatchesBean matchesBean = new DanmuMatchBean.MatchesBean();
-                        for (DanmuSearchBean.AnimesBean.EpisodesBean episodesBean : animesBean.getEpisodes()){
+                        for (DanmuSearchBean.AnimesBean.EpisodesBean episodesBean : animesBean.getEpisodes()) {
                             matchesBean.setAnimeId(animesBean.getAnimeId());
                             matchesBean.setAnimeTitle(animesBean.getAnimeTitle());
                             matchesBean.setType(animesBean.getType());
@@ -111,7 +129,7 @@ public class DanmuNetworkPresenterImpl extends BaseMvpPresenterImpl<DanmuNetwork
                         }
                     }
                     getView().refreshAdapter(matchesBeanList);
-                }else
+                } else
                     ToastUtils.showShort("无匹配弹幕");
             }
 

@@ -14,6 +14,7 @@ import com.xunlei.downloadlib.parameter.TorrentInfo;
 import com.xyoye.dandanplay2.R;
 import com.xyoye.dandanplay2.base.BaseRvAdapter;
 import com.xyoye.dandanplay2.ui.weight.item.TorrentFileCheckItem;
+import com.xyoye.dandanplay2.utils.CommonUtils;
 import com.xyoye.dandanplay2.utils.interf.AdapterItem;
 
 import java.util.ArrayList;
@@ -51,6 +52,12 @@ public class TorrentFileCheckDialog extends Dialog {
         setContentView(R.layout.dialog_torrent_file_check);
         ButterKnife.bind(this, this);
 
+        if (torrentInfo.mSubFileInfo.length > 1){
+            for (int i=1; i<torrentInfo.mSubFileInfo.length; i++){
+                torrentInfo.mSubFileInfo[i].checked = false;
+            }
+        }
+
         fileRv.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         fileRv.setNestedScrollingEnabled(false);
         fileRv.setItemViewCacheSize(10);
@@ -58,8 +65,11 @@ public class TorrentFileCheckDialog extends Dialog {
             @NonNull
             @Override
             public AdapterItem<TorrentFileInfo> onCreateItem(int viewType) {
-                return new TorrentFileCheckItem((position, isChecked) ->{
-                    torrentInfo.mSubFileInfo[position].checked = isChecked;
+                return new TorrentFileCheckItem(position ->{
+                    for (int i=0; i<torrentInfo.mSubFileInfo.length; i++){
+                        torrentInfo.mSubFileInfo[i].checked = (i == position);
+                    }
+                    fileRv.post(() -> fileAdapter.notifyDataSetChanged());
                 });
             }
         };
@@ -68,22 +78,26 @@ public class TorrentFileCheckDialog extends Dialog {
         cancelTv.setOnClickListener(v -> TorrentFileCheckDialog.this.dismiss());
 
         confirmTv.setOnClickListener(v -> {
-            ArrayList<Integer> indexes = new ArrayList<>();
+            int selectIndex = -1;
             for(int i = 0; i < torrentInfo.mSubFileInfo.length; i++){
                 if(torrentInfo.mSubFileInfo[i].checked){
-                    indexes.add(torrentInfo.mSubFileInfo[i].mFileIndex);
+                    selectIndex = torrentInfo.mSubFileInfo[i].mFileIndex;
                 }
             }
-            if(indexes.size() > 0){
-                if (listener != null) listener.onSelected(indexes);
-                dismiss();
+            if(selectIndex > -1){
+                if (CommonUtils.isMediaFile(torrentInfo.mSubFileInfo[selectIndex].mFileName)){
+                    listener.onSelected(selectIndex);
+                    dismiss();
+                }else {
+                    ToastUtils.showShort("不是可播放的视频文件");
+                }
             }else{
-                ToastUtils.showShort("请选择下载文件");
+                ToastUtils.showShort("请选择播放文件");
             }
         });
     }
 
     public interface OnTorrentSelectedListener{
-        void onSelected(ArrayList<Integer> indexes);
+        void onSelected(int indexes);
     }
 }

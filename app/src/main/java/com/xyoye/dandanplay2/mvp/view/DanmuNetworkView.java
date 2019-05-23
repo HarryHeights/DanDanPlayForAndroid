@@ -14,5 +14,9 @@ import java.util.List;
 public interface DanmuNetworkView extends BaseMvpView , LoadDataView{
     String getVideoPath();
 
+    String getSearchWord();
+
+    boolean isOnline();
+
     void refreshAdapter(List<DanmuMatchBean.MatchesBean> matches);
 }
