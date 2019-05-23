@@ -86,6 +86,8 @@ public class PlayerManagerActivity extends AppCompatActivity {
                     new DanmuSelectDialog(this, isSelectDanmu -> {
                         if (isSelectDanmu) {
                             launchDanmuSelect(videoPath);
+                        }else {
+                            launchPlayerActivity();
                         }
                     }).show();
                 } else {
